@@ -14,13 +14,24 @@ def _get_client():
     return gspread.authorize(creds)
 
 
-def _serial_to_date(serial):
-    """Convert Excel serial date number to datetime."""
-    try:
-        serial = int(float(serial))
-        return datetime(1899, 12, 30) + timedelta(days=serial)
-    except (ValueError, TypeError):
+def _serial_to_date(value):
+    """Convert Excel serial date number or date string to datetime."""
+    if not value or not str(value).strip():
         return None
+    value = str(value).strip().replace(",", "")
+    # Try parsing as a date string first (e.g., "2026-01-20")
+    try:
+        return pd.Timestamp(value).to_pydatetime()
+    except (ValueError, TypeError):
+        pass
+    # Fall back to Excel serial number
+    try:
+        serial = int(float(value))
+        if serial > 40000:  # Sanity check for valid serial dates
+            return datetime(1899, 12, 30) + timedelta(days=serial)
+    except (ValueError, TypeError):
+        pass
+    return None
 
 
 @st.cache_data(ttl=300)

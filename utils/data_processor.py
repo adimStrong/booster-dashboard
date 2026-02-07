@@ -59,7 +59,6 @@ def get_weekly_data(df_daily):
     df = df_daily.copy()
     df["Week"] = df["Date"].dt.isocalendar().week.astype(int)
     df["Year"] = df["Date"].dt.isocalendar().year.astype(int)
-    df["Week_Label"] = df["Date"].apply(lambda x: f"W{x.isocalendar()[1]} ({x.strftime('%b %d')})")
     weekly = df.groupby(["Year", "Week"]).agg(
         Comments=("Comments", "sum"),
         Reactions=("Reactions", "sum"),
@@ -69,9 +68,18 @@ def get_weekly_data(df_daily):
         End=("Date", "max"),
         Days=("Date", "count"),
     ).reset_index()
+    weekly["Is_Complete"] = weekly["Days"] >= 7
     weekly["Week_Label"] = weekly.apply(
-        lambda r: f"W{r['Week']} ({r['Start'].strftime('%b %d')} - {r['End'].strftime('%b %d')})", axis=1
+        lambda r: (
+            f"W{r['Week']} ({r['Start'].strftime('%b %d')} - {r['End'].strftime('%b %d')})"
+            + ("" if r["Is_Complete"] else " *")
+        ), axis=1
     )
+    weekly["Week_Range"] = weekly.apply(
+        lambda r: f"{r['Start'].strftime('%b %d, %Y')} - {r['End'].strftime('%b %d, %Y')}", axis=1
+    )
+    for metric in ENGAGEMENT_TYPES + ["Total"]:
+        weekly[f"Avg_{metric}"] = (weekly[metric] / weekly["Days"]).round(0).astype(int)
     return weekly.sort_values(["Year", "Week"]).reset_index(drop=True)
 
 

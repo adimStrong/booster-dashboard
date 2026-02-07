@@ -46,7 +46,14 @@ selected_row = weekly[weekly["Week_Label"] == selected_week_label].iloc[0]
 sel_year = int(selected_row["Year"])
 sel_week = int(selected_row["Week"])
 
+is_complete = bool(selected_row["Is_Complete"])
+days_count = int(selected_row["Days"])
+week_range = selected_row["Week_Range"]
+
 st.markdown(f"### {selected_week_label}")
+st.caption(f"{week_range}")
+if not is_complete:
+    st.warning(f"This week is incomplete ({days_count}/7 days). Averages are based on {days_count} day{'s' if days_count != 1 else ''}.")
 
 # --- KPIs ---
 c1, c2, c3, c4, c5 = st.columns(5)
@@ -54,7 +61,16 @@ c1.metric("Total Engagement", f"{int(selected_row['Total']):,}")
 c2.metric("Comments", f"{int(selected_row['Comments']):,}")
 c3.metric("Reactions", f"{int(selected_row['Reactions']):,}")
 c4.metric("Shares", f"{int(selected_row['Shares']):,}")
-c5.metric("Days in Week", f"{int(selected_row['Days'])}")
+c5.metric("Days in Week", f"{days_count}/7" if not is_complete else "7")
+
+# --- Daily Averages ---
+st.divider()
+st.markdown(f"### Daily Averages (based on {days_count} day{'s' if days_count != 1 else ''})")
+a1, a2, a3, a4 = st.columns(4)
+a1.metric("Avg Total/Day", f"{int(selected_row['Avg_Total']):,}")
+a2.metric("Avg Comments/Day", f"{int(selected_row['Avg_Comments']):,}")
+a3.metric("Avg Reactions/Day", f"{int(selected_row['Avg_Reactions']):,}")
+a4.metric("Avg Shares/Day", f"{int(selected_row['Avg_Shares']):,}")
 
 # --- WoW Comparison ---
 idx = weekly[weekly["Week_Label"] == selected_week_label].index[0]

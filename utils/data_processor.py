@@ -118,6 +118,49 @@ def get_day_comparison(df_daily, target_date):
     return today_metrics, prev_metrics, deltas
 
 
+def get_task_distribution(df_task, start_date, end_date):
+    """Overall task distribution for pie chart."""
+    filtered = filter_by_date(df_task, start_date, end_date)
+    if filtered.empty:
+        return pd.DataFrame()
+    grouped = filtered.groupby("Task")[["Comments", "Reactions", "Shares", "Total"]].sum().reset_index()
+    grouped = grouped.sort_values("Total", ascending=False).reset_index(drop=True)
+    grand_total = grouped["Total"].sum()
+    grouped["% of Total"] = (grouped["Total"] / grand_total * 100).round(1) if grand_total > 0 else 0
+    return grouped
+
+
+def get_task_by_agent(df_task, start_date, end_date):
+    """Task breakdown per agent - stacked bar data."""
+    filtered = filter_by_date(df_task, start_date, end_date)
+    if filtered.empty:
+        return pd.DataFrame()
+    grouped = filtered.groupby(["Agent", "Task"])["Total"].sum().reset_index()
+    return grouped
+
+
+def get_task_daily_trend(df_task, start_date, end_date, task_type=None):
+    """Daily trend for a specific task or all tasks."""
+    filtered = filter_by_date(df_task, start_date, end_date)
+    if filtered.empty:
+        return pd.DataFrame()
+    if task_type and task_type != "All Tasks":
+        filtered = filtered[filtered["Task"] == task_type]
+    grouped = filtered.groupby(["Date", "Task"])["Total"].sum().reset_index()
+    return grouped
+
+
+def get_task_agent_matrix(df_task, start_date, end_date):
+    """Agent x Task matrix (pivot table)."""
+    filtered = filter_by_date(df_task, start_date, end_date)
+    if filtered.empty:
+        return pd.DataFrame()
+    pivot = filtered.groupby(["Agent", "Task"])["Total"].sum().unstack(fill_value=0)
+    pivot["Grand Total"] = pivot.sum(axis=1)
+    pivot = pivot.sort_values("Grand Total", ascending=False)
+    return pivot
+
+
 def get_account_summary(df_accounts):
     """Overall account status summary."""
     if df_accounts.empty:

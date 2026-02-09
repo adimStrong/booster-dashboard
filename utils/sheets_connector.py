@@ -82,6 +82,25 @@ def fetch_raw_agent_daily():
 
 
 @st.cache_data(ttl=300)
+def fetch_task_daily():
+    client = _get_client()
+    sheet = client.open_by_key(ENGAGEMENT_SHEET_ID)
+    ws = sheet.worksheet("_RawTaskDaily")
+    data = ws.get_all_values()
+    if len(data) <= 1:
+        return pd.DataFrame(columns=["Date", "Agent", "Task", "Comments", "Reactions", "Shares", "Total"])
+
+    df = pd.DataFrame(data[1:], columns=data[0])
+    df["Date"] = df["Date"].apply(_serial_to_date)
+    df = df.dropna(subset=["Date"])
+    for col in ["Comments", "Reactions", "Shares", "Total"]:
+        df[col] = pd.to_numeric(df[col].str.replace(",", ""), errors="coerce").fillna(0).astype(int)
+    df = df[~df["Agent"].isin(EXCLUDED_AGENTS)]
+    df = df.sort_values(["Date", "Agent", "Task"]).reset_index(drop=True)
+    return df
+
+
+@st.cache_data(ttl=300)
 def fetch_raw_monthly():
     client = _get_client()
     sheet = client.open_by_key(ENGAGEMENT_SHEET_ID)

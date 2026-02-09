@@ -29,6 +29,19 @@ METRIC_COLORS = {
     "Total": "#AB63FA",
 }
 
+TASK_TYPES = ["SocMed", "Live", "JuanBingo (SocMed)", "Studio/Host", "Comunity Group", "Review", "Cs Complain", "Ads", "JuanSports"]
+TASK_COLORS = {
+    "SocMed": "#636EFA",
+    "Live": "#EF553B",
+    "JuanBingo (SocMed)": "#FFA15A",
+    "Studio/Host": "#AB63FA",
+    "Comunity Group": "#00CC96",
+    "Review": "#FECB52",
+    "Cs Complain": "#19D3F3",
+    "Ads": "#FF6692",
+    "JuanSports": "#B6E880",
+}
+
 ACCOUNT_STATUS_COLORS = {
     "Active": "#00CC96",
     "New Account": "#636EFA",
